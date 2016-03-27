@@ -1,0 +1,153 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN">
+<html lang="en">
+<head>
+
+<style>
+.node {
+	stroke: none;
+	xstroke-width: 1.5px;
+}
+
+.link {
+	stroke: #999;
+	stroke-opacity: .6;
+	marker-end: url(#arrow-marker);
+}
+</style>
+<title>Force based label placement</title>
+<script type="text/javascript"
+	src="//cdnjs.cloudflare.com/ajax/libs/d3/3.5.14/d3.min.js"></script>
+</head>
+<body>
+
+	<canvas id="chart" width="1200" height="800"></canvas>
+
+	<script type="text/javascript" charset="utf-8">
+		var width = 1200, height = 650;
+
+		d3.json("data", function(error, graph) {
+			if (error)
+				return console.log(error);
+		});
+
+		var c = document.getElementById("chart");
+		var ctx = c.getContext("2d");
+		ctx.fillStyle = "#FF0000";
+
+		var loc = window.location, new_uri;
+		if (loc.protocol === "https:") {
+			new_uri = "wss:";
+		} else {
+			new_uri = "ws:";
+		}
+		new_uri += "//" + loc.host + "/live-data";
+
+		var ws = null;
+		var intervalTimer = null;
+
+		function resetWebSocket() {
+			ws = new WebSocket(new_uri);
+			clearInterval(intervalTimer);
+
+			// called when socket connection established
+			ws.onopen = function() {
+				console
+						.log("Connected to stock service! Press 'Start' to get stock info.")
+			};
+
+			// called when a message received from server
+			ws.onmessage = function(evt) {
+				var data = JSON.parse(evt.data);
+				c.width = c.width;
+				if (data.coords) {
+
+					ctx.beginPath();
+					ctx.strokeStyle = '#ff00ff';
+					ctx.moveTo(500 + (10 * data.coords[0].x),
+							500 + (10 * data.coords[0].y));
+					for (var i = 1; i < data.coords.length; i++) {
+						ctx.lineTo(500 + (10 * data.coords[i].x),
+								500 + (10 * data.coords[i].y));
+					}
+					ctx.lineTo(500 + (10 * data.coords[0].x),
+							500 + (10 * data.coords[0].y));
+					ctx.stroke();
+
+					ctx.beginPath();
+					ctx.strokeStyle = '#000000';
+					for (var i = 0; i < data.coords.length; i++) {
+						ctx.moveTo(500 + (10 * data.coords[i].x),
+								500 + (10 * data.coords[i].y));
+						ctx.arc(500 + (10 * data.coords[i].x),
+								500 + (10 * data.coords[i].y), 3, 0,
+								2 * Math.PI, false);
+					}
+					ctx.stroke();
+
+					ctx.beginPath();
+					ctx.fillStyle = '#ff0000';
+					ctx.moveTo(500 + (10 * data.coords[data.clock].x),
+							500 + (10 * data.coords[data.clock].y));
+					ctx.arc(500 + (10 * data.coords[data.clock].x),
+							500 + (10 * data.coords[data.clock].y), 3, 0,
+							2 * Math.PI, false);
+					ctx.fill();
+					ctx.stroke();
+
+					ctx.fillStyle = '#00ff00';
+					ctx.beginPath();
+					ctx.moveTo(500 + (10 * data.coords[data.clock2].x),
+							500 + (10 * data.coords[data.clock2].y));
+					ctx.arc(500 + (10 * data.coords[data.clock2].x),
+							500 + (10 * data.coords[data.clock2].y), 3, 0,
+							2 * Math.PI, false);
+					ctx.fill();
+					ctx.stroke();
+					
+//					console.log( " Clock", data.clock  ) ;
+//					console.log( "Clock2", data.clock2 ) ;
+				}
+
+			};
+
+			// called when socket connection closed
+			ws.onclose = function() {
+				console.log("Disconnected from stock service!")
+				intervalTimer = setInterval(resetWebSocket, 1000);
+			};
+
+			// called in case of an error
+			ws.onerror = function(err) {
+				console.log("ERROR!", err)
+			};
+
+		}
+
+		intervalTimer = setInterval(resetWebSocket, 1000);
+
+		// sends msg to the server over websocket
+		function sendToServer(msg) {
+			if (ws)
+				ws.send(msg);
+		}
+
+		function keyUpHandler() {
+			var keyPressed = event.keyCode;
+
+			//alert("You pressed a key inside the input field:" + keyPressed );
+			if (keyPressed == 37)
+				sendToServer("L"); // left arrow
+			if (keyPressed == 39)
+				sendToServer("R"); // right arrow
+
+			if (keyPressed == 38)
+				sendToServer("F"); // left arrow
+			if (keyPressed == 40)
+				sendToServer("B"); // right arrow
+
+		}
+
+		document.addEventListener("keydown", keyUpHandler, false);
+	</script>
+</body>
+</html>
