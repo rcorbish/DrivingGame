@@ -62,13 +62,12 @@ public class GameDataWebSocket extends WebSocketAdapter {
 		y = z * (float)Math.sin( Math.toRadians(direction) ) ;
 		//y = 2 ;
 
-		if( message.startsWith( "B" ) ) z-- ; //{ x += dx ; y += dy ; }
-		if( message.startsWith( "F" ) ) z++ ; //{ x -= dx ; y -= dy ; }
-
-		//System.out.println( "Dir: " + direction + " " + x + "," + y + "," + z ) ;
-		sendRoadImage() ;
-		clock++ ;
+		if( message.startsWith( "B" ) ) clock-- ; //{ x += dx ; y += dy ; }
+		if( message.startsWith( "F" ) ) clock++ ; //{ x -= dx ; y -= dy ; }
 		clock = road.clampClock( clock ) ;
+
+		System.out.println( "clk: " + clock  ) ;
+		sendRoadImage() ;
 	}
 	// sends message to browser
 	public void sendRoadImage() {
@@ -77,7 +76,7 @@ public class GameDataWebSocket extends WebSocketAdapter {
 				StringBuilder sb = new StringBuilder() ;
 				int [] p1 = road.getCoords(clock) ;
 				int [] p2 = road.getCoords(clock+1) ;
-				float[] eye    = new float[] { p1[0], p1[1]+.6f, p1[2] } ;
+				float[] eye    = new float[] { p1[0], p1[1]+.25f, p1[2] } ;
 				float[] target = new float[] { p2[0], p2[1], p2[2] } ;
 				float[][] coords = road.draw( eye, target ) ;
 

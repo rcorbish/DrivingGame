@@ -64,32 +64,34 @@
 					ctx.beginPath();
 					ctx.strokeStyle = '#ff00ff';
 					ctx.moveTo(500 + (10 * data.coords[0].x),
-							500 + (10 * data.coords[0].y));
+							500 - (10 * data.coords[0].y));
 					for (var i = 1; i < data.coords.length; i++) {
 						ctx.lineTo(500 + (10 * data.coords[i].x),
-								500 + (10 * data.coords[i].y));
+								500 - (10 * data.coords[i].y));
 					}
 					ctx.lineTo(500 + (10 * data.coords[0].x),
-							500 + (10 * data.coords[0].y));
+							500 - (10 * data.coords[0].y));
 					ctx.stroke();
 
 					ctx.beginPath();
 					ctx.strokeStyle = '#000000';
 					for (var i = 0; i < data.coords.length; i++) {
-						ctx.moveTo(500 + (10 * data.coords[i].x),
-								500 + (10 * data.coords[i].y));
-						ctx.arc(500 + (10 * data.coords[i].x),
-								500 + (10 * data.coords[i].y), 3, 0,
-								2 * Math.PI, false);
+						var x = data.coords[i].x ;
+						var y = data.coords[i].y ;
+						var z = data.coords[i].z ;
+						if( z <= data.coords[data.clock].z ) {
+							ctx.moveTo(500 + (10 * x),500 - (10 * y));
+							ctx.arc(500 + (10 * x),	500 - (10 * y), 3, 0, 2 * Math.PI, false);
+						}
 					}
 					ctx.stroke();
 
 					ctx.beginPath();
 					ctx.fillStyle = '#ff0000';
 					ctx.moveTo(500 + (10 * data.coords[data.clock].x),
-							500 + (10 * data.coords[data.clock].y));
+							500 - (10 * data.coords[data.clock].y));
 					ctx.arc(500 + (10 * data.coords[data.clock].x),
-							500 + (10 * data.coords[data.clock].y), 3, 0,
+							500 - (10 * data.coords[data.clock].y), 3, 0,
 							2 * Math.PI, false);
 					ctx.fill();
 					ctx.stroke();
@@ -97,9 +99,9 @@
 					ctx.fillStyle = '#00ff00';
 					ctx.beginPath();
 					ctx.moveTo(500 + (10 * data.coords[data.clock2].x),
-							500 + (10 * data.coords[data.clock2].y));
+							500 - (10 * data.coords[data.clock2].y));
 					ctx.arc(500 + (10 * data.coords[data.clock2].x),
-							500 + (10 * data.coords[data.clock2].y), 3, 0,
+							500 - (10 * data.coords[data.clock2].y), 3, 0,
 							2 * Math.PI, false);
 					ctx.fill();
 					ctx.stroke();
@@ -141,9 +143,9 @@
 				sendToServer("R"); // right arrow
 
 			if (keyPressed == 38)
-				sendToServer("F"); // left arrow
+				sendToServer("F"); // up arrow
 			if (keyPressed == 40)
-				sendToServer("B"); // right arrow
+				sendToServer("B"); // down arrow
 
 		}
 

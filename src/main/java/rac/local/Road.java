@@ -53,6 +53,7 @@ public class Road {
 		return new int[] { x[ix],y[ix],z[ix] } ;
 	}
 	public int clampClock( int index ) {
+		if ( index < 0 ) return index + x.length ; 
 		return index % x.length ;
 	}
 	
@@ -86,18 +87,17 @@ public class Road {
 		float [] U = new float [] { up[0], up[1], up[2] } ; 
 		
 		normalize( F ) ;
-		normalize( U ) ;
 		
-		float [] s = new float[] { F[1]*U[2] - F[2]*U[1], F[2]*U[0] - F[0]*U[2], F[0]*U[1] - F[1]*U[0] } ;
+		float [] s = cross3( U, F ) ;
 		normalize( s ) ;
 		
-		float [] u = new float[] { s[1]*F[2] - s[2]*F[1], s[2]*F[0] - s[0]*F[2], s[0]*F[1] - s[1]*F[0] } ;   
+		float [] u = cross3( F, s ) ;   
 
 		
 		float [] M = new float[] {  
-				s[0], u[0], -F[0], 0,
-				s[1], u[1], -F[1], 0,
-				s[2], u[2], -F[2], 0,
+				s[0], u[0], F[0], 0,
+				s[1], u[1], F[1], 0,
+				s[2], u[2], F[2], 0,
 				0, 0, 0, 1 } ;
 		
 		float [] T = new float[] {
@@ -109,6 +109,13 @@ public class Road {
 		return multiply4x4Matrix(M, T) ;
 	}
 	
+	protected float[] cross3( float[] a, float []b ) {
+		float [] rc = new float[3] ;
+		rc[0] = a[1]*b[2] - a[2]*b[1] ;
+		rc[1] = a[2]*b[0] - a[0]*b[2] ;
+		rc[2] = a[0]*b[1] - a[1]*b[0] ;		
+		return rc ;
+	}
 	protected void normalize( float[] vector ) {
 		float total = 0 ;
 		for( int i=0 ; i<vector.length ; i++ ) {
@@ -185,10 +192,10 @@ public class Road {
 				transformation[9] * point[1]  +
 				transformation[10] * point[2]  +
 				transformation[11] ;
-		float w = transformation[12] * point[0] + 
-				transformation[13] * point[1]  +
-				transformation[14] * point[2]  +
-				transformation[15] ;
+//		float w = transformation[12] * point[0] + 
+//				transformation[13] * point[1]  +
+//				transformation[14] * point[2]  +
+//				transformation[15] ;
 		point[0] = x ;
 		point[1] = y ;
 		point[2] = z ;
@@ -207,10 +214,10 @@ public class Road {
 				transformation[6] * point[1]  +
 				transformation[10] * point[2]  +
 				transformation[14] ;
-		float w = transformation[3] * point[0] + 
-				transformation[7] * point[1]  +
-				transformation[11] * point[2]  +
-				transformation[15] ;
+//		float w = transformation[3] * point[0] + 
+//				transformation[7] * point[1]  +
+//				transformation[11] * point[2]  +
+//				transformation[15] ;
 		point[0] = x ;
 		point[1] = y ;
 		point[2] = z ;
