@@ -74,12 +74,11 @@ public class GameDataWebSocket extends WebSocketAdapter {
 		try {
 			if (session.isOpen()) {
 				StringBuilder sb = new StringBuilder() ;
-				int [] p1 = road.getCoords(clock) ;
-				int [] p2 = road.getCoords(clock+1) ;
-				float[] xlat   = new float[] { -p1[0], -p1[1], -p1[2] } ;
-				float[] eye    = new float[] { p1[0], p1[1]+.1f, p1[2] } ;
-				float[] target = new float[] { p2[0], p2[1], p2[2] } ;
-				float[][] coords = road.draw( xlat, eye, target ) ;
+				float[] p1 		= road.getCoords(clock) ;
+				float[] p2 		= road.getCoords(clock+1) ;
+				float[] eye    	= new float[] { p1[0], p1[1]+.01f, p1[2] } ;
+				float[] target 	= new float[] { p2[0], p2[1], p2[2] } ;
+				float[][] coords = road.draw( eye, target ) ;
 
 				sb.append( "{ \"coords\":[" ) ;
 				char sep = ' ' ;

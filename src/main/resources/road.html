@@ -45,14 +45,16 @@
 		var ws = null;
 		var intervalTimer = null;
 
+		function mapx( x ) { return 500 + (10 * x) ; }
+		function mapy( y ) { return 500 - (10 * y) ; }
+		
 		function resetWebSocket() {
 			ws = new WebSocket(new_uri);
 			clearInterval(intervalTimer);
 
 			// called when socket connection established
 			ws.onopen = function() {
-				console
-						.log("Connected to stock service! Press 'Start' to get stock info.")
+				console.log("Connected to service!")
 			};
 
 			// called when a message received from server
@@ -62,17 +64,14 @@
 				if (data.coords) {
 
 					ctx.beginPath();
-					ctx.strokeStyle = '#ff00ff';
-					ctx.moveTo(500 + (10 * data.coords[0].x),
-							500 - (10 * data.coords[0].y));
+					ctx.strokeStyle = '#cecece';
+					ctx.moveTo( mapx(data.coords[0].x), mapy(data.coords[0].y) );
 					for (var i = 1; i < data.coords.length; i++) {
-						ctx.lineTo(500 + (10 * data.coords[i].x),
-								500 - (10 * data.coords[i].y));
+						ctx.lineTo( mapx(data.coords[i].x), mapy(data.coords[i].y) );
 					}
-					ctx.lineTo(500 + (10 * data.coords[0].x),
-							500 - (10 * data.coords[0].y));
+					ctx.lineTo( mapx(data.coords[0].x), mapy(data.coords[0].y) );
 					ctx.stroke();
-
+					
 					ctx.beginPath();
 					ctx.strokeStyle = '#000000';
 					for (var i = 0; i < data.coords.length; i++) {
@@ -80,28 +79,26 @@
 						var y = data.coords[i].y ;
 						var z = data.coords[i].z ;
 						if( z <= data.coords[data.clock].z ) {
-							ctx.moveTo(500 + (10 * x),500 - (10 * y));
-							ctx.arc(500 + (10 * x),	500 - (10 * y), 3, 0, 2 * Math.PI, false);
+							ctx.moveTo( mapx(x), mapy(y) );
+							ctx.arc( mapx(x), mapy(y), 3, 0, 2 * Math.PI, false);
 						}
 					}
 					ctx.stroke();
 
 					ctx.beginPath();
 					ctx.fillStyle = '#ff0000';
-					ctx.moveTo(500 + (10 * data.coords[data.clock].x),
-							500 - (10 * data.coords[data.clock].y));
-					ctx.arc(500 + (10 * data.coords[data.clock].x),
-							500 - (10 * data.coords[data.clock].y), 3, 0,
+					ctx.moveTo( mapx(data.coords[data.clock].x), mapy(data.coords[data.clock].y));
+					ctx.arc( mapx(data.coords[data.clock].x), mapy(data.coords[data.clock].y), 3, 0,
 							2 * Math.PI, false);
 					ctx.fill();
 					ctx.stroke();
 
 					ctx.fillStyle = '#00ff00';
 					ctx.beginPath();
-					ctx.moveTo(500 + (10 * data.coords[data.clock2].x),
-							500 - (10 * data.coords[data.clock2].y));
-					ctx.arc(500 + (10 * data.coords[data.clock2].x),
-							500 - (10 * data.coords[data.clock2].y), 3, 0,
+					ctx.moveTo( mapx(data.coords[data.clock2].x),
+							mapy(data.coords[data.clock2].y));
+					ctx.arc(mapx(data.coords[data.clock2].x),
+							mapy(data.coords[data.clock2].y), 3, 0,
 							2 * Math.PI, false);
 					ctx.fill();
 					ctx.stroke();

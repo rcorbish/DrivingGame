@@ -1,12 +1,15 @@
 package rac.local;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class Road {
-	private int []x ;
-	private int []y ;
-	private int []z ;
+	private float []x ;
+	private float []y ;
+	private float []z ;
 	
 	private final static String [] Track1 =
-	{   "d1","e1","f2","g3","h4","i4","j4","k3","l2","m2","n3","n4","n5","n6",
+	{   "d1","e1","f2","g3","h4","i4","j4","k3","l2","m2","n3","n4","n5","o6","o7",
 		"n7","m8","l9","k9","j8","i8","h9","g9","f10","f11","f12","g13","h13",
 		"i14","i15","i16","h17","g17","f17","e17","d16","c15","b14","a13",
 		"a12","a11","a10","a9","a8","a7","a6","a5","a4","a3","b2","c1"
@@ -17,21 +20,58 @@ public class Road {
 	}
 	
 	public Road( String [] roadCentreCoords ) {
-		x = new int[ roadCentreCoords.length ] ;
-		y = new int[ roadCentreCoords.length ] ;
-		z = new int[ roadCentreCoords.length ] ;
-		
-		for( int i=0 ; i<roadCentreCoords.length ; i++ ) {
+
+	    List<Point> path = new ArrayList<Point>();
+
+		for( int i=0 ; i<roadCentreCoords.length ; i+=3 ) {
 			char c=roadCentreCoords[i].charAt(0) ;
-			x[i] = Character.toLowerCase(c) - 'a' ;
-			y[i] = 0 ; //1 * (i&1) ;
-			z[i] = 1 - Integer.parseInt(roadCentreCoords[i].substring(1) )  ;
+			int x0 = Character.toLowerCase(c) - 'a' ;			
+			int y0 = 1 - Integer.parseInt(roadCentreCoords[i].substring(1) )  ;
+
+			c=roadCentreCoords[i+1].charAt(0) ;
+			int x1 = Character.toLowerCase(c) - 'a' ;			
+			int y1 = 1 - Integer.parseInt(roadCentreCoords[i+1].substring(1) )  ;
+
+			c=roadCentreCoords[i+2].charAt(0) ;
+			int x2 = Character.toLowerCase(c) - 'a' ;			
+			int y2 = 1 - Integer.parseInt(roadCentreCoords[i+2].substring(1) )  ;
+
+			int ix = i+3 ; 
+			if( ix >= roadCentreCoords.length ) ix = 0 ; 
+			c=roadCentreCoords[ix].charAt(0) ;
+			int x3 = Character.toLowerCase(c) - 'a' ;			
+			int y3 = 1 - Integer.parseInt(roadCentreCoords[ix].substring(1) )  ;
+
+			generateBezierPath(path, new Point(x0,y0), new Point(x3,y3), new Point(x1,y1), new Point(x2,y2), 10) ;
 		}
+
+		x = new float[ path.size() ] ;
+		y = new float[ path.size() ] ;
+		z = new float[ path.size() ] ;
 		
-//		x = new int[] { -1, -1,  1,  1 ,  1,  1, -1, -1, -1, -1,  1,  1,  1,  1, -1, -1 } ;
-//		y = new int[] { -1,  1,  1, -1 , -1,  1,  1, -1, -1,  1,  1, -1, -1,  1,  1, -1 } ;
-//		z = new int[] { -1, -1, -1, -1 , -2, -2, -2, -2, -3, -3, -3, -3, -6, -6, -6, -6 } ;
+		for( int i=0 ; i<path.size() ; i++ ) {
+			Point p = path.get(i) ;
+			x[i] = p.x ;
+			y[i] = 0 ;
+			z[i] = p.y ;
+		}
 	}
+	
+	
+	public void generateBezierPath( List<Point> path, Point origin, Point destination, Point control1, Point control2, int segments) {
+		float t = 0;
+	    for (int i = 0; i < segments; i++) {
+	        Point p = new Point( 
+		        (float)(Math.pow(1 - t, 3) * origin.x + 3.0f * Math.pow(1 - t, 2) * t * control1.x + 3.0f * (1 - t) * t * t * control2.x + t * t * t * destination.x),
+		        (float)(Math.pow(1 - t, 3) * origin.y + 3.0f * Math.pow(1 - t, 2) * t * control1.y + 3.0f * (1 - t) * t * t * control2.y + t * t * t * destination.y)
+	        ) ;
+	        t += 1.0f / segments;
+	        path.add(p);
+	    }
+	    path.add(destination);
+	} 
+	
+	class Point { Point(float x,float y) { this.x=x ; this.y=y ; } float x,y ; } 
 	
 	public int identifyTrackPosition( int xc, int zc ) {
 		double minDistance =  Double.MAX_VALUE ;
@@ -48,9 +88,9 @@ public class Road {
 		return position ;
 	}
 
-	public int[] getCoords( int index ) {
+	public float[] getCoords( int index ) {
 		int ix = index % x.length ;
-		return new int[] { x[ix],y[ix],z[ix] } ;
+		return new float[] { x[ix],y[ix],z[ix] } ;
 	}
 	
 	public int clampClock( int index ) {
@@ -58,7 +98,7 @@ public class Road {
 		return index % x.length ;
 	}
 	
-	public float[][] draw( float [] xlat, float[] camera, float[] centre ) {
+	public float[][] draw( float[] camera, float[] centre ) {
 
 		float [] modelTranslation = new float[] { 0,0,0 } ;
 		float [] modelRotation = new float [] { 0,0,0 } ;
@@ -66,13 +106,12 @@ public class Road {
 		
 		float [][] rc = new float[3][x.length] ;
 		for( int i=0 ; i<x.length ; i++ ) {
-			int [] point = getCoords( i ) ;
-			float [] p = new float[] { point[0], point[1], point[2] } ;
+			float [] p = getCoords( i ) ;
 			transform( 
 					p, 
 					modelTranslation, modelRotation, modelScale, 
 					camera, centre,
-					.05f, .05f, 0.1f, .3f 
+					.02f, .02f, 0.1f, .2f 
 					);
 			rc[0][i] = p[0] ;
 			rc[1][i] = p[1] ;
