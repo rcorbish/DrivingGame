@@ -52,16 +52,17 @@ public class Road {
 		int ix = index % x.length ;
 		return new int[] { x[ix],y[ix],z[ix] } ;
 	}
+	
 	public int clampClock( int index ) {
 		if ( index < 0 ) return index + x.length ; 
 		return index % x.length ;
 	}
 	
-	public float[][] draw( float[] camera, float[] centre ) {
+	public float[][] draw( float [] xlat, float[] camera, float[] centre ) {
 
 		float [] modelTranslation = new float[] { 0,0,0 } ;
 		float [] modelRotation = new float [] { 0,0,0 } ;
-		float [] modelScale = new float[] { 25,25,25 } ;
+		float [] modelScale = new float[] { 1,1,1 } ;
 		
 		float [][] rc = new float[3][x.length] ;
 		for( int i=0 ; i<x.length ; i++ ) {
@@ -71,9 +72,8 @@ public class Road {
 					p, 
 					modelTranslation, modelRotation, modelScale, 
 					camera, centre,
-					1.25f, 1.25f, 0.1f, 1000.f 
+					.05f, .05f, 0.1f, .3f 
 					);
-//			System.out.println( point[0] + "," + point[1] + "," + point[2] ) ;
 			rc[0][i] = p[0] ;
 			rc[1][i] = p[1] ;
 			rc[2][i] = p[2] ; 
@@ -85,14 +85,13 @@ public class Road {
 	protected float[] lookAt( float [] camera, float [] centre, float [] up ) {
 		float [] F = new float [] { centre[0] - camera[0], centre[1] - camera[1], centre[2] - camera[2] } ; 
 		float [] U = new float [] { up[0], up[1], up[2] } ; 
-		
+
 		normalize( F ) ;
 		
 		float [] s = cross3( U, F ) ;
 		normalize( s ) ;
 		
 		float [] u = cross3( F, s ) ;   
-
 		
 		float [] M = new float[] {  
 				s[0], u[0], F[0], 0,
@@ -109,23 +108,7 @@ public class Road {
 		return multiply4x4Matrix(M, T) ;
 	}
 	
-	protected float[] cross3( float[] a, float []b ) {
-		float [] rc = new float[3] ;
-		rc[0] = a[1]*b[2] - a[2]*b[1] ;
-		rc[1] = a[2]*b[0] - a[0]*b[2] ;
-		rc[2] = a[0]*b[1] - a[1]*b[0] ;		
-		return rc ;
-	}
-	protected void normalize( float[] vector ) {
-		float total = 0 ;
-		for( int i=0 ; i<vector.length ; i++ ) {
-			total += vector[i] * vector[i] ;
-		}
-		total = (float)Math.sqrt( total ) ;
-		for( int i=0 ; i<vector.length ; i++ ) {
-			vector[i] /= total ;
-		}
-	}
+
 	protected void transform( 
 			float [] point, 
 			float [] modelTranslation, float [] modelRotation, float [] modelScale,
@@ -142,12 +125,12 @@ public class Road {
 		} ;
 		
 		float [] viewMatrix = lookAt( camera, target, new float[] { 0,1,0 } ) ;
-		float [] modelMatrix = transform( modelTranslation, modelRotation, modelScale ) ;
-		transformPoint2(
-				multiply4x4Matrix( multiply4x4Matrix( projectionMatrix, viewMatrix), modelMatrix ), point ) ;
+		float [] modelMatrix = buildTransformation( modelTranslation, modelRotation, modelScale ) ;
+		
+		transformPoint( multiply4x4Matrix( projectionMatrix, viewMatrix, modelMatrix ), point ) ;
 	}
 	
-	protected float[] transform( float [] translation, float [] rotation, float [] scale ) {
+	protected float[] buildTransformation( float [] translation, float [] rotation, float [] scale ) {
 		float [] translationMatrix = new float[] { 
 				1,0,0,0,  
 				0,1,0,0,  
@@ -173,10 +156,7 @@ public class Road {
 				scale[0],0,0,0,  0,scale[1],0,0,  0,0,scale[2],0,   0,0,0,1 
 		};
 		
-		return multiply4x4Matrix( 					
-					multiply4x4Matrix(translationMatrix,rotationMatrix),
-					scaleMatrix
-					) ; 
+		return multiply4x4Matrix( translationMatrix, rotationMatrix, scaleMatrix ) ; 
 	}
 	
 	protected void transformPoint1( float [] point, float [] transformation ) {
@@ -201,7 +181,7 @@ public class Road {
 		point[2] = z ;
 	}
 
-	protected void transformPoint2( float [] transformation, float [] point) {
+	protected void transformPoint( float [] transformation, float [] point) {
 		float x = transformation[0] * point[0] + 
 				transformation[4] * point[1]  +
 				transformation[8] * point[2]  +
@@ -224,6 +204,11 @@ public class Road {
 	}
 	
 
+	public float [] multiply4x4Matrix( float [] a, float [] b, float [] c ) {
+		return multiply4x4Matrix( multiply4x4Matrix( a, b ), c ) ;
+	}
+
+	
 	public float [] multiply4x4Matrix( float [] left, float [] right ) {
 		
 		float [] rc = new float[16];
@@ -240,4 +225,24 @@ public class Road {
 		
 		return rc ;
 	}
+
+	protected float[] cross3( float[] a, float []b ) {
+		float [] rc = new float[3] ;
+		rc[0] = a[1]*b[2] - a[2]*b[1] ;
+		rc[1] = a[2]*b[0] - a[0]*b[2] ;
+		rc[2] = a[0]*b[1] - a[1]*b[0] ;		
+		return rc ;
+	}
+	
+	protected void normalize( float[] vector ) {
+		float total = 0 ;
+		for( int i=0 ; i<vector.length ; i++ ) {
+			total += vector[i] * vector[i] ;
+		}
+		total = (float)Math.sqrt( total ) ;
+		for( int i=0 ; i<vector.length ; i++ ) {
+			vector[i] /= total ;
+		}
+	}
 }
+
