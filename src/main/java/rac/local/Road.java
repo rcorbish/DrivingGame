@@ -42,7 +42,7 @@ public class Road {
 			int x3 = Character.toLowerCase(c) - 'a' ;			
 			int y3 = 1 - Integer.parseInt(roadCentreCoords[ix].substring(1) )  ;
 
-			generateBezierPath(path, new Point(x0,y0), new Point(x3,y3), new Point(x1,y1), new Point(x2,y2), 10) ;
+			generateBezierPath(path, new Point(x0,y0), new Point(x3,y3), new Point(x1,y1), new Point(x2,y2), 15) ;
 		}
 
 		x = new float[ path.size() ] ;
@@ -111,7 +111,7 @@ public class Road {
 					p, 
 					modelTranslation, modelRotation, modelScale, 
 					camera, centre,
-					.02f, .02f, 0.1f, .2f 
+					.0025f, .0006f, 0.05f, 0.052f 
 					);
 			rc[0][i] = p[0] ;
 			rc[1][i] = p[1] ;
