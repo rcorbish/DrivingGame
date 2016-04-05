@@ -39,14 +39,16 @@ public class GameDataWebSocket extends WebSocketAdapter {
 		System.out.println( "Connected WebSocket !!!!!" ) ;
 		this.session = session;
 		
-		executor.scheduleAtFixedRate(() ->  {
-			clock = road.clampClock( clock ) ;
-			float[] p1 		= road.getCoords(clock) ;
-			float[] p2 		= road.getCoords(clock+1) ;
-			float[] eye    	= new float[] { p1[0], p1[1]+3.0f, p1[2] } ;
-
-			sendRoadImage( fov, eye[0], eye[1], eye[2], p2[0], p2[1], p2[2], near, far ) ;
-			clock++ ;}, 0, 100, TimeUnit.MILLISECONDS);
+		executor.scheduleAtFixedRate(() -> {
+				clock = road.clampClock( clock ) ;
+				float[] p1 		= road.getCoords(clock) ;
+				float[] p2 		= road.getCoords(clock+1) ;
+				float[] eye    	= new float[] { p1[0], y, p1[2] } ;
+	
+				sendRoadImage( fov, eye[0], eye[1], eye[2], p2[0], p2[1], p2[2], near, far ) ;
+				clock++ ;
+			}, 0, 50, TimeUnit.MILLISECONDS
+		);
 		
 	}
 

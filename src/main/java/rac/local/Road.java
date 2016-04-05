@@ -26,7 +26,7 @@ public class Road {
 	}
 	
 	public Road( String [] roadCentreCoords, String [] roadCentreCoords2 ) {
-		int SCALE = 2 ;
+		int SCALE = 6 ;
 	    List<Point> path = new ArrayList<Point>();
 
 		for( int i=0 ; i<roadCentreCoords.length ; i+=3 ) {
@@ -48,7 +48,7 @@ public class Road {
 			int x3 = SCALE * (Character.toLowerCase(c) - 'a' ) ;			
 			int y3 = SCALE * (Integer.parseInt(roadCentreCoords[ix].substring(1) ) - 1 ) ;
 
-			generateBezierPath(path, new Point(x0,y0), new Point(x3,y3), new Point(x1,y1), new Point(x2,y2), 5) ;
+			generateBezierPath(path, new Point(x0,y0), new Point(x3,y3), new Point(x1,y1), new Point(x2,y2), 15) ;
 		}
 
 		
@@ -71,7 +71,7 @@ public class Road {
 			int x3 = SCALE * (Character.toLowerCase(c) - 'a' ) ;			
 			int y3 = SCALE * (Integer.parseInt(roadCentreCoords2[ix].substring(1) ) - 1 ) ;
 
-			generateBezierPath(path, new Point(x0,y0), new Point(x3,y3), new Point(x1,y1), new Point(x2,y2), 5) ;
+			generateBezierPath(path, new Point(x0,y0), new Point(x3,y3), new Point(x1,y1), new Point(x2,y2), 15) ;
 		}
 
 		x = new float[ path.size() ] ;
