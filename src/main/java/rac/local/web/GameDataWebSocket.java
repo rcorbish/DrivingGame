@@ -17,11 +17,13 @@ import rac.local.Road;
  */
 
 public class GameDataWebSocket extends WebSocketAdapter {
-	private int direction = 90 ;
-	private float x = 0 ;
-	private float y = 0 ;
-	private float z = 2 ;
 	private int clock = 0 ;
+	private int far = 140 ;
+	private int near = 100 ;
+	private int x = 100 ;
+	private int y = 100 ;
+	private int z = 100 ;
+	private int fov = 100 ;
 	
 	private Session session;
 	private final Road road ;
@@ -36,7 +38,16 @@ public class GameDataWebSocket extends WebSocketAdapter {
 	public void onWebSocketConnect(Session session) {
 		System.out.println( "Connected WebSocket !!!!!" ) ;
 		this.session = session;
-		//executor.scheduleAtFixedRate(() ->  sendBrainState(), 0, 75, TimeUnit.MILLISECONDS);
+		
+		executor.scheduleAtFixedRate(() ->  {
+			clock = road.clampClock( clock ) ;
+			float[] p1 		= road.getCoords(clock) ;
+			float[] p2 		= road.getCoords(clock+1) ;
+			float[] eye    	= new float[] { p1[0], p1[1]+3.0f, p1[2] } ;
+
+			sendRoadImage( fov, eye[0], eye[1], eye[2], p2[0], p2[1], p2[2], near, far ) ;
+			clock++ ;}, 0, 100, TimeUnit.MILLISECONDS);
+		
 	}
 
 	// called when the connection closed
@@ -52,33 +63,48 @@ public class GameDataWebSocket extends WebSocketAdapter {
 
 	// called when a message received from the browser
 	public void onWebSocketText(String message) {
-		//int val = Integer.parseInt( message.substring(1)) ;
-		if( message.startsWith( "L" ) ) direction -- ;
-		if( message.startsWith( "R" ) ) direction ++ ;
-		if( direction<0 ) direction += 360 ;
-		if( direction>360 ) direction -= 360 ;
 
-		x = z * (float)Math.cos( Math.toRadians(direction) ) ;
-		y = z * (float)Math.sin( Math.toRadians(direction) ) ;
-		//y = 2 ;
-
-		if( message.startsWith( "B" ) ) clock-- ; //{ x += dx ; y += dy ; }
-		if( message.startsWith( "F" ) ) clock++ ; //{ x -= dx ; y -= dy ; }
+		String s[] = message.split( "\\|" ) ;
+		String msg = s[0] ;
+		int val = Integer.parseInt( s[1] ) ;
+		
 		clock = road.clampClock( clock ) ;
 
-		System.out.println( "clk: " + clock  ) ;
-		sendRoadImage() ;
+		if( msg.equalsIgnoreCase( "x" ) ) x = val ;
+		if( msg.equalsIgnoreCase( "y" ) ) y = val ;
+		if( msg.equalsIgnoreCase( "z" ) ) z = val ;
+		if( msg.equalsIgnoreCase( "near" ) ) near = val ;
+		if( msg.equalsIgnoreCase( "far" ) ) far = val ;
+		if( msg.equalsIgnoreCase( "fov" ) ) fov = val ;
+
+		System.out.println( "fov, x, y, z, near, far " + fov + "," + x+ "," +y+ "," +z+ "," +near+ "," +far ) ;
+
+		sendRoadImage( fov, x, y, z, near, far ) ;
 	}
+	
 	// sends message to browser
-	public void sendRoadImage() {
+	public void sendRoadImage( float fov, float x, float y, float z, float near, float far ) {
+		sendRoadImage( fov, x, y, z, 0.f, 0.f, 0.f, near, far ) ;		
+	}
+	
+	public void sendRoadImage( float fov, float x, float y, float z, float tx, float ty, float tz, float near, float far ) {
 		try {
 			if (session.isOpen()) {
 				StringBuilder sb = new StringBuilder() ;
 				float[] p1 		= road.getCoords(clock) ;
 				float[] p2 		= road.getCoords(clock+1) ;
-				float[] eye    	= new float[] { p1[0], p1[1]+.002f, p1[2] } ;
+				float[] eye    	= new float[] { p1[0], p1[1]+3.0f, p1[2] } ;
 				float[] target 	= new float[] { p2[0], p2[1], p2[2] } ;
-				float[][] coords = road.draw( eye, target ) ;
+				
+				eye[0] = x ;
+				eye[1] = y ;
+				eye[2] = z ;
+				
+				target[0] = 0.f ;
+				target[1] = 0.f ;
+				target[2] = 0.f ;
+				
+				float[][] coords = road.draw( fov, eye, target, near, far ) ;
 
 				sb.append( "{ \"coords\":[" ) ;
 				char sep = ' ' ;

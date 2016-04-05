@@ -62,7 +62,7 @@ public class TestMatrix {
 
 	@Test
 	public void test4() {
-		float coords[][] = underTest.draw( new float[]{5, 0, 10 }, new float[]{0,0,0} );
+		float coords[][] = underTest.draw( 60, new float[]{5, 0, 10 }, new float[]{0,0,0}, 1, 100 );
 		
 		int SCREEN_SIZE=200 ;
 		boolean screen[][] = new boolean[SCREEN_SIZE][SCREEN_SIZE] ;

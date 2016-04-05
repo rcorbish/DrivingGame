@@ -3,6 +3,9 @@
 <head>
 
 <style>
+html {
+	font-family: arial ;
+}
 .node {
 	stroke: none;
 	xstroke-width: 1.5px;
@@ -19,11 +22,21 @@
 	src="//cdnjs.cloudflare.com/ajax/libs/d3/3.5.14/d3.min.js"></script>
 </head>
 <body>
-
-	<canvas id="chart" width="1200" height="800"></canvas>
-
+	<div>
+		<div style='float:left'>
+			X<input id="x" type="range" min="-200" max="200" /><br> Y<input
+				id="y" type="range" min="-200" max="200" /><br> Z<input id="z"
+				type="range" min="-200" max="200" /><br> NEAR<input id="near"
+				type="range" min="0" max="100" /><br> FAR<input id="far"
+				type="range" min="0" max="1000" /><br> FOV<input id="fov"
+				type="range" min="1" max="130" /><br>
+		</div>
+		<div style='background:silver;'>
+			<canvas id="chart" width="1200" height="800"></canvas>
+		</div>
+	</div>
 	<script type="text/javascript" charset="utf-8">
-		var width = 1200, height = 650;
+		var width = 800, height = 500;
 
 		d3.json("data", function(error, graph) {
 			if (error)
@@ -45,16 +58,25 @@
 		var ws = null;
 		var intervalTimer = null;
 
-		function mapx( x ) { return 500 + (10 * x) ; }
-		function mapy( y ) { return 500 - (10 * y) ; }
-		
+		function mapx(x) {
+			return 500 + x;
+		}
+		function mapy(y) {
+			return 500 - y;
+		}
+
 		function resetWebSocket() {
 			ws = new WebSocket(new_uri);
 			clearInterval(intervalTimer);
 
 			// called when socket connection established
 			ws.onopen = function() {
-				console.log("Connected to service!")
+				sendToServer(  "x|" + document.getElementById("x").value) ;
+				sendToServer(  "y|" + document.getElementById("y").value) ;
+				sendToServer(  "z|" + document.getElementById("z").value) ;
+				sendToServer(  "fov|" + document.getElementById("fov").value) ;
+				sendToServer(  "near|" + document.getElementById("near").value) ;
+				sendToServer(  "far|" + document.getElementById("far").value) ;
 			};
 
 			// called when a message received from server
@@ -62,49 +84,50 @@
 				var data = JSON.parse(evt.data);
 				c.width = c.width;
 				if (data.coords) {
-
-					ctx.beginPath();
-					ctx.strokeStyle = '#cecece';
-					ctx.moveTo( mapx(data.coords[0].x), mapy(data.coords[0].y) );
-					for (var i = 1; i < data.coords.length; i++) {
-						ctx.lineTo( mapx(data.coords[i].x), mapy(data.coords[i].y) );
-					}
-					ctx.lineTo( mapx(data.coords[0].x), mapy(data.coords[0].y) );
-					ctx.stroke();
-					
-					ctx.beginPath();
-					ctx.strokeStyle = '#000000';
+					/*
+					 ctx.beginPath();
+					 ctx.strokeStyle = '#cecece';
+					 ctx.moveTo( mapx(data.coords[0].x), mapy(data.coords[0].y) );
+					 for (var i = 1; i < data.coords.length; i++) {
+					 ctx.lineTo( mapx(data.coords[i].x), mapy(data.coords[i].y) );
+					 }
+					 ctx.lineTo( mapx(data.coords[0].x), mapy(data.coords[0].y) );
+					 ctx.stroke();
+					 */
 					for (var i = 0; i < data.coords.length; i++) {
-						var x = data.coords[i].x ;
-						var y = data.coords[i].y ;
-						var z = data.coords[i].z ;
-						if( z <= data.coords[data.clock].z ) {
-							ctx.moveTo( mapx(x), mapy(y) );
-							ctx.arc( mapx(x), mapy(y), 3, 0, 2 * Math.PI, false);
-						}
+						var x = data.coords[i].x;
+						var y = data.coords[i].y;
+						var z = data.coords[i].z;
+						var xx = mapx(x);
+						ctx.beginPath();
+						ctx.strokeStyle = (z <= 0) ? '#ffffff' : '#000000'
+						ctx.moveTo(xx, mapy(y));
+						ctx.rect(xx, mapy(y), 4, 4);
+						ctx.stroke();
 					}
-					ctx.stroke();
-
+/*
 					ctx.beginPath();
 					ctx.fillStyle = '#ff0000';
-					ctx.moveTo( mapx(data.coords[data.clock].x), mapy(data.coords[data.clock].y));
-					ctx.arc( mapx(data.coords[data.clock].x), mapy(data.coords[data.clock].y), 3, 0,
-							2 * Math.PI, false);
+					ctx.moveTo(mapx(data.coords[data.clock].x),
+							mapy(data.coords[data.clock].y));
+					ctx.arc(mapx(data.coords[data.clock].x),
+							mapy(data.coords[data.clock].y), 3, 0, 2 * Math.PI,
+							false);
 					ctx.fill();
 					ctx.stroke();
 
 					ctx.fillStyle = '#00ff00';
 					ctx.beginPath();
-					ctx.moveTo( mapx(data.coords[data.clock2].x),
+					ctx.moveTo(mapx(data.coords[data.clock2].x),
 							mapy(data.coords[data.clock2].y));
 					ctx.arc(mapx(data.coords[data.clock2].x),
 							mapy(data.coords[data.clock2].y), 3, 0,
 							2 * Math.PI, false);
 					ctx.fill();
 					ctx.stroke();
-					
-//					console.log( " Clock", data.clock  ) ;
-//					console.log( "Clock2", data.clock2 ) ;
+					*/
+					//					console.log( " Clock", data.clock  ) ;
+					//					console.log( "Clock2", data.clock2 ) ;
 				}
 
 			};
@@ -129,24 +152,15 @@
 			if (ws)
 				ws.send(msg);
 		}
+	</script>
 
-		function keyUpHandler() {
-			var keyPressed = event.keyCode;
 
-			//alert("You pressed a key inside the input field:" + keyPressed );
-			if (keyPressed == 37)
-				sendToServer("L"); // left arrow
-			if (keyPressed == 39)
-				sendToServer("R"); // right arrow
-
-			if (keyPressed == 38)
-				sendToServer("F"); // up arrow
-			if (keyPressed == 40)
-				sendToServer("B"); // down arrow
-
-		}
-
-		document.addEventListener("keydown", keyUpHandler, false);
+	<script>
+		d3.selectAll("input[type='range']").on("input", function() {
+			sendToServer(this.id + "|" + this.value);
+		})
+		.style("position", "absolute")
+		.style( "left", "70px" );
 	</script>
 </body>
 </html>
